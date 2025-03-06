@@ -1,0 +1,6 @@
+.env
+session.json
+composer.lock
+stockevents*.csv
+/vendor
+/.idea

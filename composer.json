@@ -1,0 +1,7 @@
+{
+    "require": {
+        "php": ">=8.2",
+        "vlucas/phpdotenv": "^5.6",
+        "gboudreau/ws-api-php": "^0.8.0"
+    }
+}
