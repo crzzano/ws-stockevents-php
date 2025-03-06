@@ -134,15 +134,17 @@ foreach ($accounts as $account) {
         }
         echo "\n";
     }
+
+    $csv_name = "stockevents-" . $account->number . '-' . date("Y-m-d") . ".csv";
+    echo "\n ** Creating CSV with this output:\n\n";
+    echo $csv_data;
+    echo "\n\n ** Make sure all of your stocks are on your StockEvents watch list first!\n";
+    echo " ** Send this CSV to your email and import it into StockEvents.\n";
+    echo " ** File location: ".__DIR__."/$csv_name \n\n";
+    file_put_contents(__DIR__ . "/$csv_name", $csv_data);
 }
 
-$csv_name = "stockevents-" . date("Y-m-d") . ".csv";
-echo "\n ** Creating CSV with this output:\n\n";
-echo $csv_data;
-echo "\n\n ** Make sure all of your stocks are on your StockEvents watch list first!\n";
-echo " ** Send this CSV to your email and import it into StockEvents.\n";
-echo " ** File location: ".__DIR__."/$csv_name \n";
-file_put_contents(__DIR__ . "/$csv_name", $csv_data);
+
 
 
 function securityIdToSymbol($ws, $security_id) {
