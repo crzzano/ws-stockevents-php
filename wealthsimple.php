@@ -11,7 +11,7 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-$ws_accounts = explode(",",$_ENV['WEALTHSIMPLE_ACCOUNTS']);
+$ws_accounts = !empty($_ENV['WEALTHSIMPLE_ACCOUNTS']) ? explode(",",$_ENV['WEALTHSIMPLE_ACCOUNTS']) : [];
 $ws_tx_types = explode(",",$_ENV['WEALTHSIMPLE_TX_TYPES'] ?? "DIY_BUY,DIY_SELL");
 $ws_activity_limit = $_ENV['WEALTHSMPLE_ACTIVITY_LIMIT'] ?? 250;
 
@@ -29,12 +29,12 @@ if (!file_exists(__DIR__ . '/session.json')) {
     $totp_code = null;
         try {
             if (empty($username)) {
-                $username = $_ENV['WEALTHSIMPLE_EMAIL'];
+                $username = $_ENV['WEALTHSIMPLE_EMAIL'] ?? readline("Wealthsimple email: ");
             }
             if (empty($password)) {
-                $password = $_ENV['WEALTHSIMPLE_PASSWORD'];
+                $password = $_ENV['WEALTHSIMPLE_PASSWORD'] ?? readline("Wealthsimple password: ");
             }
-            $totp_code = readline("TOTP code: ");
+            $totp_code = readline("2FA App OTP Code: ");
             if($username && $password && $totp_code) {
                 WealthsimpleAPI::login($username, $password, $totp_code, $persist_session_fct, 'trade.read');
             }
@@ -50,6 +50,11 @@ if (!file_exists(__DIR__ . '/session.json')) {
 $session = json_decode(file_get_contents(__DIR__ . '/session.json'));
 $ws = WealthsimpleAPI::fromToken($session, $persist_session_fct);
 // $persist_session_fct is needed here too, because the session may be updated if the access token expired, and thus this function will be called to save the new session
+
+// if no account numbers provided in .env, request one
+if(!$ws_accounts || count($ws_accounts) == 0) {
+    $ws_accounts = [readline("Wealthsimple Account #: ")];
+}
 
 // Optionally define functions to cache market data, if you want transactions' descriptions and accounts balances to show the security's symbol instead of its ID
 // eg. sec-s-e7947deb977341ff9f0ddcf13703e9a6 => TSX:XEQT
@@ -121,16 +126,6 @@ foreach ($accounts as $account) {
                 $csv_data .= "\n$securityNameForStockEvents," . date("Y-m-d", strtotime($act->occurredAt)) . ",$sign$act->assetQuantity,$price,$act->currency";
             }
 
-            // Print transaction details from gboudreau Usage example
-//            echo "  - [" . date(
-//                "Y-m-d H:i:s",
-//                strtotime($act->occurredAt)
-//              ) . "] [$act->canonicalId] $act->description = " . $sign . "$act->amount $act->currency\n";
-//            if ($act->description === "$act->type: $act->subType") {
-//                // This is an "unknown" transaction, for which description is generic;
-//                // please open an issue on https://github.com/gboudreau/ws-api-php/issues and include the following:
-//                echo "    Unknown activity: " . json_encode($act) . "\n";
-//            }
         }
         echo "\n";
     }
@@ -143,9 +138,6 @@ foreach ($accounts as $account) {
     echo " ** File location: ".__DIR__."/$csv_name \n\n";
     file_put_contents(__DIR__ . "/$csv_name", $csv_data);
 }
-
-
-
 
 function securityIdToSymbol($ws, $security_id) {
     $security_symbol = "[$security_id]";
