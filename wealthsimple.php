@@ -108,8 +108,6 @@ foreach ($accounts as $account) {
     $acts = $ws->getActivities($account->id, $ws_activity_limit);
     $csv_data="Symbol,Date,Quantity,Price,Currency";
     if ($acts) {
-        // echo "  Transactions:\n";
-
         foreach ($acts as $act) {
             if(!in_array($act->type, $ws_tx_types) ){
                 continue;
